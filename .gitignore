@@ -1,0 +1,9 @@
+Makefile
+Makefile.old
+MYMETA.*
+pm_to_blib
+blib
+/*.c
+/*.bs
+/*.o
+!duktape.c

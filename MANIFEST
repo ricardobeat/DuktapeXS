@@ -1,0 +1,11 @@
+Changes
+DuktapeXS.xs
+duktape/duktape.c
+duktape/duktape.h
+duktape/duk_config.h
+Makefile.PL
+MANIFEST
+ppport.h
+README
+t/DuktapeXS.t
+lib/DuktapeXS.pm

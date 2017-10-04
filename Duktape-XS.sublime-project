@@ -1,0 +1,17 @@
+{
+    "folders": [{
+        "path": ".",
+        "folder_exclude_patterns": [
+            "blib"
+        ],
+        "file_exclude_patterns": [
+            "Makefile.old",
+            "Makefile",
+            "MYMETA.*",
+            "*.bs",
+            "*.o",
+            "pm_to_blib",
+            "DuktapeXS.c"
+        ]
+    }]
+}
