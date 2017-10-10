@@ -8,7 +8,7 @@ binmode STDOUT, ":encoding(utf8)";
 use Exporter 5.57 'import';
 
 our $VERSION     = '0.001';
-our %EXPORT_TAGS = ( 'all' => [qw(add_numbers is_even hello js_eval)] );
+our %EXPORT_TAGS = ( 'all' => [qw(js_eval)] );
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
 XSLoader::load('DuktapeXS', $VERSION);
