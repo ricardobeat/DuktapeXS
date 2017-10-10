@@ -5,7 +5,7 @@
 #include "ppport.h"
 
 #include "duktape.h"
-
+#include "duk_console.h"
 
 MODULE = DuktapeXS PACKAGE = DuktapeXS
 PROTOTYPES: DISABLE
@@ -21,6 +21,9 @@ SV *js_eval(const char *code)
     CODE:
         # create new VM context
         ctx = duk_create_heap_default();
+
+        # initialize console object
+        duk_console_init(ctx, DUK_CONSOLE_PROXY_WRAPPER | DUK_CONSOLE_FLUSH);
 
         # evaluate source
         duk_peval_string(ctx, code);

@@ -3,6 +3,7 @@ use warnings;
 use Data::Dumper;
 
 use Test::More;
+use Test::Output;
 BEGIN { use_ok('DuktapeXS') };
 
 use DuktapeXS qw(:all);
@@ -36,9 +37,26 @@ subtest 'Arrays' => sub {
 };
 
 subtest 'Object' => sub {
-    is(js_eval(q{typeof {}}), 'object');
-    is(js_eval(q{Object.prototype.toString.call({})}), '[object Object]');
-    is(js_eval(q{var _ = 99, x = { a: _ }; x.a}), '99');
+    is_js q/typeof {}/, 'object';
+    is_js q/Object.prototype.toString.call({})/, '[object Object]';
+    is_js q/var _ = 99, x = { a: _ }; x.a/, '99';
+};
+
+subtest 'Error' => sub {
+    like js_eval("syntax error!"), qr/SyntaxError/;
+    like js_eval("this.undefined()"), qr/TypeError/;
+};
+
+subtest 'console stdout' => sub {
+    stdout_like sub { js_eval("console.log('YEAAAAAAA');") }, qr/YEAAAAAAA/;
+    stdout_like sub { js_eval("console.info('YEAAAAAAA');") }, qr/YEAAAAAAA/;
+};
+
+subtest 'console stderr' => sub {
+    stderr_like sub { js_eval("console.warn('NOOOOOOOO');") }, qr/NOOOOOOOO/;
+    stderr_like sub { js_eval("console.error('NOOOOOOOO');") }, qr/NOOOOOOOO/;
+};
+
 };
 
 done_testing();
