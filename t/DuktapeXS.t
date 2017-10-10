@@ -57,6 +57,11 @@ subtest 'console stderr' => sub {
     stderr_like sub { js_eval("console.error('NOOOOOOOO');") }, qr/NOOOOOOOO/;
 };
 
+subtest 'require' => sub {
+    is_js q{
+        var test = require('./t/foo');
+        test.foo + test.ie5Too0a + test.bark();
+    }, 'Hoh6yi5oBARwoof';
 };
 
 done_testing();
