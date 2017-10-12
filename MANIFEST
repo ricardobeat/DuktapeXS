@@ -1,8 +1,14 @@
 Changes
 DuktapeXS.xs
-duktape/duktape.c
-duktape/duktape.h
-duktape/duk_config.h
+duktape.c
+duktape.h
+duk_config.h
+duk_console.c
+duk_console.h
+duk_module_loader.h
+duk_module_node.c
+duk_module_node.h
+duk_timeout.h
 Makefile.PL
 MANIFEST
 ppport.h

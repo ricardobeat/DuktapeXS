@@ -8,6 +8,7 @@
 #include "duk_console.h"
 #include "duk_module_node.h"
 #include "duk_module_loader.h"
+#include "duk_timeout.h"
 
 MODULE = DuktapeXS PACKAGE = DuktapeXS
 PROTOTYPES: DISABLE
@@ -36,7 +37,9 @@ SV *js_eval(const char *code)
         duk_console_init(ctx, DUK_CONSOLE_PROXY_WRAPPER | DUK_CONSOLE_FLUSH);
 
         # evaluate source
+        start_exec_timeout();
         duk_peval_string(ctx, code);
+        clear_exec_timeout();
         value = duk_safe_to_string(ctx, -1);
 
         # prepare output
@@ -51,3 +54,7 @@ SV *js_eval(const char *code)
 
     CLEANUP:
         duk_destroy_heap(ctx);
+
+void *set_timeout(int seconds)
+    CODE:
+        set_exec_timeout(seconds);

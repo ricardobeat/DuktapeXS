@@ -4,6 +4,8 @@ use Data::Dumper;
 
 use Test::More;
 use Test::Output;
+use Test::Exception;
+
 BEGIN { use_ok('DuktapeXS') };
 
 use DuktapeXS qw(:all);
@@ -20,6 +22,14 @@ sub print_bytes {
 sub is_js {
     my ($code, $cmp) = @_;
     is(js_eval($code), $cmp);
+}
+
+sub timeout {
+    my ($timeout, $sub) = @_;
+    local $SIG{ALRM} = sub { die "timed out\n" }; # NB: \n required
+    alarm $timeout;
+    $sub->();
+    alarm 0;
 }
 
 # Some basic sanity tests
@@ -62,6 +72,13 @@ subtest 'require' => sub {
         var test = require('./t/foo');
         test.foo + test.ie5Too0a + test.bark();
     }, 'Hoh6yi5oBARwoof';
+};
+
+subtest 'timeout check' => sub {
+    DuktapeXS::set_timeout(1);
+    my $spin = q/while (true) 1; 'unreachable';/;
+    dies_ok sub { timeout 1, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape timeout reached';
+    lives_ok sub { timeout 2, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape timeout not reached';
 };
 
 done_testing();
