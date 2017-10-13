@@ -12,6 +12,6 @@ duk_timeout.h
 Makefile.PL
 MANIFEST
 ppport.h
-README
+README.md
 t/DuktapeXS.t
 lib/DuktapeXS.pm
