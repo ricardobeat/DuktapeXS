@@ -75,10 +75,11 @@ subtest 'require' => sub {
 };
 
 subtest 'timeout check' => sub {
-    DuktapeXS::set_timeout(1);
+    DuktapeXS::set_timeout(2);
     my $spin = q/while (true) 1; 'unreachable';/;
-    dies_ok sub { timeout 1, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape timeout reached';
-    lives_ok sub { timeout 2, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape timeout not reached';
+    js_eval("console.error('aaaa');", { coisa => '123' });
+    dies_ok sub { timeout 1, sub { isnt js_eval($spin), 'unreachable'; } }, 'Timeout before duktape';
+    lives_ok sub { timeout 3, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape times out first';
 };
 
 done_testing();
