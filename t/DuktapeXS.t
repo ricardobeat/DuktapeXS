@@ -5,6 +5,7 @@ use Data::Dumper;
 use Test::More;
 use Test::Output;
 use Test::Exception;
+use Time::HiRes qw(ualarm);
 
 BEGIN { use_ok('DuktapeXS') };
 
@@ -25,11 +26,11 @@ sub is_js {
 }
 
 sub timeout {
-    my ($timeout, $sub) = @_;
+    my ($timeout_s, $sub) = @_;
     local $SIG{ALRM} = sub { die "timed out\n" }; # NB: \n required
-    alarm $timeout;
+    ualarm ($timeout_s * 1_000_000);
     $sub->();
-    alarm 0;
+    ualarm 0;
 }
 
 # Some basic sanity tests
@@ -75,11 +76,17 @@ subtest 'require' => sub {
 };
 
 subtest 'timeout check' => sub {
-    DuktapeXS::set_timeout(2);
-    my $spin = q/while (true) 1; 'unreachable';/;
-    js_eval("console.error('aaaa');", { coisa => '123' });
-    dies_ok sub { timeout 1, sub { isnt js_eval($spin), 'unreachable'; } }, 'Timeout before duktape';
-    lives_ok sub { timeout 3, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape times out first';
+    plan skip_all => 1 if $ENV{FAST};
+    DuktapeXS::set_timeout(1);
+    my $spin = q{
+        // gives more opportunity for the scheduler check to run than while(true)
+        function F (){ return true };
+        var fn = [F];
+        while(fn.pop()()) fn.push(F);
+        'unreachable';
+    };
+    dies_ok sub { timeout 0.2, sub { isnt js_eval($spin), 'unreachable'; } }, 'Timeout before duktape';
+    lives_ok sub { timeout 2.2, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape times out first';
 };
 
 done_testing();
