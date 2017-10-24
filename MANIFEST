@@ -9,6 +9,8 @@ duk_module_loader.h
 duk_module_node.c
 duk_module_node.h
 duk_timeout.h
+duk_safe_json.h
+duk_safe_json.c
 Makefile.PL
 MANIFEST
 ppport.h

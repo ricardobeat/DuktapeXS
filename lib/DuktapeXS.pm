@@ -13,6 +13,12 @@ our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
 XSLoader::load('DuktapeXS', $VERSION);
 
+sub js_eval {
+    my ($code, $payload) = @_;
+    return duktape_eval($code, $payload) if $payload;
+    return duktape_eval($code, "");
+}
+
 1;
 __END__
 # Below is stub documentation for your module. You'd better edit it!
