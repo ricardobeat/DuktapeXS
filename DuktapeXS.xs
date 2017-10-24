@@ -28,13 +28,11 @@ SV *duktape_eval(const char *code, const char *json_payload)
         // create new VM context
         ctx = duk_create_heap_default();
 
-        duk_push_global_object(ctx);
-
         // receive json payload
         if (strncmp(json_payload, "", 1)) {
             duk_push_string(ctx, json_payload);
             if (duk_safe_call(ctx, safe_json_decode, NULL, 0, 1) == DUK_EXEC_SUCCESS) {
-                duk_put_prop_string(ctx, -3, "__PAYLOAD");
+                duk_put_global_string(ctx, "__PAYLOAD");
             } else {
                 fprintf(stderr, "JSON parsing failed: %s\n", json_payload);
             }
