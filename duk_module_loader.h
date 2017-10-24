@@ -8,11 +8,6 @@ inline bool str_endswith(const char *str, const char *end){
     return strcmp(start, end) == 0;
 }
 
-inline static duk_ret_t fn_print(duk_context *ctx) {
-  printf("%s\n", duk_to_string(ctx, 0));
-  return 0;
-}
-
 inline static duk_ret_t cb_resolve_module(duk_context *ctx) {
     const char *module_id;
     const char *parent_id;
@@ -53,6 +48,7 @@ inline static char *read_file(const char *filename){
 
        fclose(handler);
     }
+
     return buffer;
 }
 
@@ -70,7 +66,7 @@ inline static duk_ret_t cb_load_module(duk_context *ctx) {
     if (module_source != NULL) {
         duk_push_string(ctx, module_source);
     } else {
-        (void) duk_type_error(ctx, "cannot find module: %s", module_id);
+        (void) duk_generic_error(ctx, "cannot find module: %s", module_id);
     }
 
     return 1;
