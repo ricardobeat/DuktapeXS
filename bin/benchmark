@@ -7,6 +7,7 @@ use DuktapeXS qw(js_eval);
 use Encode;
 use JSON;
 use Time::HiRes qw(gettimeofday tv_interval);
+use LWP::Simple;
 
 my %timings = ();
 
@@ -47,40 +48,93 @@ benchmark 'Create VM and load json', 1000, sub {
    js_eval(q{"Héllööö from javascript! "}, $JSON);
 };
 
-benchmark 'Create VM and load preact', 100, sub {
-    js_eval q{
-        require('./shims');
-        var preact = require('./preact');
-    };
+my $code_babel = q{
+    var Babel = require('./babel');
+    var input = 'const getMessage = () => \'Hello World\';';
+    var output = Babel.transform(input, { presets: ['es2015'] }).code;
+    //console.log(output);
 };
 
-benchmark 'Create VM and load babel', 2, sub {
-    js_eval q{
-        var Babel = require('./babel');
-        var input = 'const getMessage = () => "Hello World";';
-        var output = Babel.transform(input, { presets: ['es2015'] }).code;
-        //console.log(output);
-    };
+my $code_buble = q{
+    var buble = require('./buble');
+    var input = 'const getMessage = () => \'Hello World\';';
+    var output = buble.transform(input).code;
+    //console.log(output);
 };
 
-benchmark 'Create VM and load buble', 2, sub {
-    js_eval q{
-        var buble = require('./buble');
-        var output = buble.transform(input).code;
-        //console.log(output);
-    };
+my $code_preact = q{
+    require('./shims');
+    var preact = require('./preact');
+    var ssr = require('./preact-render-to-string');
+    var vdom = preact.h('div', null, 'Hello world');
+    var output = ssr.render(vdom)
+    //console.log(output)
 };
 
-benchmark 'Run node and load preact', 2, sub {
-    system(q{node -e "require('./preact')"});
+my $code_moon = q{
+    var Moon = require('./moon')
+    var ssr = require('./moon-ssr');
+    var app = new Moon({
+        template: '<div id=\'app\'>{{msg}}</div>',
+        data: { msg: 'Hello Moon!' }
+    });
+    var output = ssr.renderToString(app)
+    //console.log(output);
 };
 
-benchmark 'Run node and load babel', 2, sub {
-    system(q{node -e "require('./babel')"});
+benchmark 'Create VM and load babel', 5, sub {
+    js_eval $code_babel;
 };
 
-benchmark 'Run node and load buble', 2, sub {
-    system(q{node -e "require('./buble')"});
+benchmark 'Create VM and load buble', 5, sub {
+    js_eval $code_buble;
 };
+
+benchmark 'Create VM and load preact', 10, sub {
+    js_eval $code_preact;
+};
+
+benchmark 'Create VM and load moonjs', 10, sub {
+    js_eval $code_moon;
+};
+
+benchmark 'Run node and load babel', 5, sub {
+    system(qq{node -e "$code_babel"});
+};
+
+benchmark 'Run node and load buble', 5, sub {
+    system(qq{node -e "$code_buble"});
+};
+
+benchmark 'Run node and load preact', 10, sub {
+    system(qq{node -e "$code_preact"});
+};
+
+benchmark 'Run node and load moonjs', 10, sub {
+    system(qq{node -e "$code_moon"});
+};
+
+benchmark 'Run node and load vue', 2, sub {
+    system(q{node -e "
+        try {
+        const Vue = require('vue');
+        const ssr = require('vue-server-renderer')
+        const app = new Vue({
+          template: '<div>Hello World</div>'
+        })
+        const renderer = ssr.createRenderer();
+        renderer.renderToString(app, (err, html) => {
+          if (err) throw err
+          //console.log(html)
+        })
+        } catch (o_O) {};
+    "});
+};
+
+# - run t/fixtures/vue-service.js
+# benchmark 'Node service over HTTP', 500, sub {
+#     my $response = get("http://localhost:8088");
+#     # print STDOUT $response . "\n";
+# };
 
 1;
