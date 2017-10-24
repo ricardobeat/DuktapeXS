@@ -1,0 +1,86 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use feature 'say';
+
+use DuktapeXS qw(js_eval);
+use Encode;
+use JSON;
+use Time::HiRes qw(gettimeofday tv_interval);
+
+my %timings = ();
+
+sub benchmark {
+    my ($name, $count, $sub) = @_;
+
+    my $t0 = [gettimeofday];
+    my $i = $count;
+    while ($i--) {
+        $sub->()
+    };
+
+    my $elapsed = sprintf("%.3f", tv_interval($t0));
+    my $freq = int($count / $elapsed);
+    my $time = sprintf("%.2f", $elapsed / $count * 1000);
+
+    say "$name: ${elapsed}s ($count ops, $freq ops/sec, ${time}ms)";
+}
+
+chdir './t/fixtures';
+
+benchmark 'Create VM and execute', 1000, sub {
+   if (js_eval(q{"Héllööö from javascript! " + "!!!!"}) ne "Héllööö from javascript! !!!!") {
+        die "Noooo";
+   };
+};
+
+my $JSON = encode_json({
+    foo => 1,
+    bar => 2,
+    animals => ['duck', 'goose', 'pig'],
+    nested => {
+        birds => { of => { a => 'feather' } }
+    }
+});
+
+benchmark 'Create VM and load json', 1000, sub {
+   js_eval(q{"Héllööö from javascript! "}, $JSON);
+};
+
+benchmark 'Create VM and load preact', 100, sub {
+    js_eval q{
+        require('./shims');
+        var preact = require('./preact');
+    };
+};
+
+benchmark 'Create VM and load babel', 2, sub {
+    js_eval q{
+        var Babel = require('./babel');
+        var input = 'const getMessage = () => "Hello World";';
+        var output = Babel.transform(input, { presets: ['es2015'] }).code;
+        //console.log(output);
+    };
+};
+
+benchmark 'Create VM and load buble', 2, sub {
+    js_eval q{
+        var buble = require('./buble');
+        var output = buble.transform(input).code;
+        //console.log(output);
+    };
+};
+
+benchmark 'Run node and load preact', 2, sub {
+    system(q{node -e "require('./preact')"});
+};
+
+benchmark 'Run node and load babel', 2, sub {
+    system(q{node -e "require('./babel')"});
+};
+
+benchmark 'Run node and load buble', 2, sub {
+    system(q{node -e "require('./buble')"});
+};
+
+1;

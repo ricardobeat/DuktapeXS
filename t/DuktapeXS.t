@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Data::Dumper;
+use JSON;
 
 use Test::More;
 use Test::Output;
@@ -9,7 +9,7 @@ use Time::HiRes qw(ualarm);
 
 BEGIN { use_ok('DuktapeXS') };
 
-use DuktapeXS qw(:all);
+use DuktapeXS qw(js_eval set_timeout);
 
 sub print_bytes {
     my $str = shift;
@@ -73,6 +73,23 @@ subtest 'require' => sub {
         var test = require('./t/foo');
         test.foo + test.ie5Too0a + test.bark();
     }, 'Hoh6yi5oBARwoof';
+
+    is_js q{
+        require('./t/fixtures/shims.js');
+        typeof require('./t/fixtures/preact').render;
+    }, 'function';
+
+    like js_eval(q{
+        var missing = require('./pony');
+    }), qr/cannot find module/;
+
+    like js_eval(q{
+        try {
+            var missing = require('./pony');
+        } catch (e) {
+            e;
+        }
+    }), qr/cannot find module/;
 };
 
 subtest 'timeout check' => sub {
@@ -87,6 +104,17 @@ subtest 'timeout check' => sub {
     };
     dies_ok sub { timeout 0.2, sub { isnt js_eval($spin), 'unreachable'; } }, 'Timeout before duktape';
     lives_ok sub { timeout 2.2, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape times out first';
+};
+
+subtest 'json payload' => sub {
+    my $JSON = q/{"foo": "bar"}/;
+    is js_eval('__PAYLOAD.foo', $JSON), "bar";
+
+    my $JSON2 = encode_json({
+        jason => { has => { hashes => [1,2,'c'] }}
+    });
+
+    is js_eval('__PAYLOAD.jason.has.hashes[1]', $JSON2), '2';
 };
 
 done_testing();
