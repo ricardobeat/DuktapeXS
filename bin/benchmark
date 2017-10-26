@@ -131,10 +131,10 @@ benchmark 'Run node and load vue', 2, sub {
     "});
 };
 
-# - run t/fixtures/vue-service.js
-# benchmark 'Node service over HTTP', 500, sub {
-#     my $response = get("http://localhost:8088");
-#     # print STDOUT $response . "\n";
-# };
+# run t/fixtures/vue-service.js
+benchmark 'Node service over HTTP', 500, sub {
+    my $response = get("http://localhost:8088");
+    # print STDOUT $response . "\n";
+};
 
 1;
