@@ -6,9 +6,11 @@ duk_config.h
 duk_console.c
 duk_console.h
 duk_module_loader.h
-duk_module_node.c
+duk_module_loader.c
 duk_module_node.h
+duk_module_node.c
 duk_timeout.h
+duk_timeout.c
 duk_safe_json.h
 duk_safe_json.c
 Makefile.PL

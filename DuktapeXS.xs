@@ -1,4 +1,4 @@
-#define PERL_NO_GET_CONTEXT
+#define PERL_NO_GET_CONTEXT__THIS_BREAKS_INCLUDES
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
