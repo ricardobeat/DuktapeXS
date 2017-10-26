@@ -12,7 +12,8 @@
 #include "duk_timeout.h"
 #include "duk_safe_json.h"
 
-#define puts(...) fprintf(stderr, ">> "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n");
+#define DEBUG 0
+#define puts(...) do { if (DEBUG) { fprintf(stderr, ">> "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, "\n"); } } while (0);
 
 // call_perl
 // bridge to call &call_perl_sub passing arguments
@@ -54,7 +55,7 @@ static duk_ret_t duk_call_perl(duk_context *ctx) {
     long ln;
 
     sub = duk_get_string(ctx, 0);
-    puts("pushing sub name: %s", sub);
+    //puts("pushing sub name: %s", sub);
 
     // collect all arguments
     ln = (long) duk_get_top(ctx) - 1;
