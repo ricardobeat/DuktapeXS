@@ -3,6 +3,7 @@ package DuktapeXS;
 use strict;
 use warnings;
 use XSLoader;
+use JSON;
 binmode STDOUT, ":encoding(utf8)";
 
 use Exporter 5.57 'import';
@@ -13,10 +14,23 @@ our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
 XSLoader::load('DuktapeXS', $VERSION);
 
+my $subs = {};
+
 sub js_eval {
-    my ($code, $payload) = @_;
-    return duktape_eval($code, $payload) if $payload;
-    return duktape_eval($code, "");
+    my $code    = shift || "";
+    my $payload = shift || "";
+
+    $subs = shift || {};
+    $payload = encode_json($payload) if ($payload);
+
+    return duktape_eval($code, $payload, $subs);
+}
+
+sub call_perl_sub {
+    my $name = shift;
+    my $ret = "";
+    $ret = $subs->{$name}->(@_) if defined($subs->{$name});
+    return "$ret";
 }
 
 1;
