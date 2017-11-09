@@ -105,10 +105,10 @@ subtest 'timeout check' => sub {
         function F (){ return true };
         var fn = [F];
         while(fn.pop()()) fn.push(F);
-        'unreachable';
+        'done';
     };
-    dies_ok sub { timeout 0.2, sub { isnt js_eval($spin), 'unreachable'; } }, 'Timeout before duktape';
-    lives_ok sub { timeout 2.2, sub { isnt js_eval($spin), 'unreachable'; } }, 'Duktape times out first';
+    dies_ok sub { timeout 0.2, sub { isnt js_eval($spin), 'done'; } }, 'Timeout before duktape';
+    lives_ok sub { timeout 2.2, sub { isnt js_eval($spin), 'done'; } }, 'Duktape times out first';
 };
 
 # data argument (json encoded)
