@@ -8,7 +8,7 @@ binmode STDOUT, ":encoding(utf8)";
 
 use Exporter 5.57 'import';
 
-our $VERSION     = '0.37';
+our $VERSION     = '0.38';
 our %EXPORT_TAGS = ( 'all' => [qw(js_eval js_eval_safe set_timeout)] );
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
