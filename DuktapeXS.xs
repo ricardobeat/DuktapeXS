@@ -82,7 +82,7 @@ PROTOTYPES: DISABLE
 
 SV *duktape_eval(const char *code, const char *json_payload, SV *methods)
     PREINIT:
-        int ln;
+        STRLEN ln;
         const char *value;
         const char *err;
         SV* output;
@@ -153,7 +153,7 @@ SV *duktape_eval(const char *code, const char *json_payload, SV *methods)
             err = duk_safe_to_string(ctx, -1);
             croak_sv(newSVpvf("%s\n", err)); // end with newline to avoid Perl adding .pm source line
         } else {
-            value = duk_safe_to_string(ctx, -1);
+            value = duk_to_string(ctx, -1);
         }
 
         // prepare output
@@ -161,6 +161,7 @@ SV *duktape_eval(const char *code, const char *json_payload, SV *methods)
         ln = strlen(value);
         output = newSV(ln);
         sv_setpvn(output, value, ln);
+        SvUTF8_on(output);
 
         RETVAL = output;
 

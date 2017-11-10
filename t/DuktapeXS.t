@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use JSON;
+use utf8;
 
 use Test::More;
 use Test::Output;
@@ -209,6 +210,15 @@ subtest 'calling subs' => sub {
     is js_eval(q/translate('hello', 2, JSON.stringify({ name: 'friends' }))/, undef, {
         translate => \&trans
     }), 'Hello all friends';
+};
+
+subtest 'utf8' => sub {
+    is js_eval(q/"E aí?"/), "E aí?";
+    # TODO: is js_eval(q/"😎"/), "😎";
+    is js_eval(q/"Hö"/), "Hö";
+    is js_eval(q/
+        (function (a){ return a.toUpperCase(); })(DATA.str);
+    /, { str => "abc αβγ ß" }), uc("abc αβγ ß");
 };
 
 done_testing();

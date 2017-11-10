@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use feature 'say';
+use utf8;
 
 use DuktapeXS qw(js_eval);
 use Encode;
@@ -30,7 +31,7 @@ sub benchmark {
 chdir './t/fixtures';
 
 benchmark 'Create VM and execute', 1000, sub {
-   if (js_eval(q{"Héllööö from javascript! " + "!!!!"}) ne "Héllööö from javascript! !!!!") {
+   if (js_eval(q{"Héllööö"}) ne "Héllööö") {
         die "Noooo";
    };
 };
