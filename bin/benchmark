@@ -35,17 +35,17 @@ benchmark 'Create VM and execute', 1000, sub {
    };
 };
 
-my $JSON = encode_json({
+my $data = {
     foo => 1,
     bar => 2,
     animals => ['duck', 'goose', 'pig'],
     nested => {
         birds => { of => { a => 'feather' } }
     }
-});
+};
 
-benchmark 'Create VM and load json', 1000, sub {
-   js_eval(q{"Héllööö from javascript! "}, $JSON);
+benchmark 'Create VM and load data', 1000, sub {
+   js_eval(q{"Héllööö from javascript! "}, $data);
 };
 
 my $code_babel = q{
