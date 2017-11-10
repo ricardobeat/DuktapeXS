@@ -84,6 +84,7 @@ SV *duktape_eval(const char *code, const char *json_payload, SV *methods)
     PREINIT:
         int ln;
         const char *value;
+        const char *err;
         SV* output;
 
         duk_context *ctx;
@@ -146,7 +147,14 @@ SV *duktape_eval(const char *code, const char *json_payload, SV *methods)
         start_exec_timeout();
         duk_peval_string(ctx, code);
         clear_exec_timeout();
-        value = duk_safe_to_string(ctx, -1);
+
+        if (duk_is_error(ctx, -1)) {
+            value = "";
+            err = duk_safe_to_string(ctx, -1);
+            croak_sv(newSVpvf("%s\n", err)); // end with newline to avoid Perl adding .pm source line
+        } else {
+            value = duk_safe_to_string(ctx, -1);
+        }
 
         // prepare output
         // must return a copy of output string, duk_destroy_heap() eventually mangles RETVAL

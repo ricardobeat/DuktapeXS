@@ -8,8 +8,8 @@ binmode STDOUT, ":encoding(utf8)";
 
 use Exporter 5.57 'import';
 
-our $VERSION     = '0.36';
-our %EXPORT_TAGS = ( 'all' => [qw(js_eval set_timeout)] );
+our $VERSION     = '0.37';
+our %EXPORT_TAGS = ( 'all' => [qw(js_eval js_eval_safe set_timeout)] );
 our @EXPORT_OK   = ( @{ $EXPORT_TAGS{'all'} } );
 
 XSLoader::load('DuktapeXS', $VERSION);
@@ -24,6 +24,14 @@ sub js_eval {
     $payload = encode_json($payload) if ($payload);
 
     return duktape_eval($code, $payload, $subs);
+}
+
+sub js_eval_safe {
+    eval {
+        return js_eval(@_);
+    } or do {
+        return "";
+    }
 }
 
 sub call_perl_sub {

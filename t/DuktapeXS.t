@@ -9,7 +9,7 @@ use Time::HiRes qw(ualarm);
 
 BEGIN { use_ok('DuktapeXS') };
 
-use DuktapeXS qw(js_eval set_timeout);
+use DuktapeXS qw(:all);
 
 sub print_bytes {
     my $str = shift;
@@ -25,9 +25,14 @@ sub is_js {
     is(js_eval($code), $cmp);
 }
 
+sub js_throws {
+    my ($code, $cmp) = @_;
+    throws_ok sub { js_eval($code); }, $cmp;
+}
+
 sub timeout {
     my ($timeout_s, $sub) = @_;
-    local $SIG{ALRM} = sub { die "timed out\n" }; # NB: \n required
+    local $SIG{ALRM} = sub { die "${timeout_s}s timeout triggered"; };
     ualarm ($timeout_s * 1_000_000);
     $sub->();
     ualarm 0;
@@ -55,10 +60,37 @@ subtest 'Object' => sub {
     is_js q/var _ = 99, x = { a: _ }; x.a/, '99';
 };
 
-subtest 'Error' => sub {
-    like js_eval("syntax error!"), qr/SyntaxError/;
-    like js_eval("this.undefined()"), qr/TypeError/;
+# -----------------------------------------------------------------------------
+
+subtest 'error handling' => sub {
+    js_throws q/If you're happy and you know it, Syntax Error!/,
+        qr/SyntaxError/;
+
+    js_throws q/this.undefined()/,
+        qr/TypeError/;
+
+    js_throws q/new Error('morri');/,
+         qr/morri/;
+
+    js_throws q/new EvalError('morri');/,
+        qr/EvalError/;
+
+    js_throws q/""--;/,
+        qr/ReferenceError/;
+
+    subtest 'error is not printed in output' => sub {
+        my $output;
+        eval {
+            $output = js_eval q/throw new ReferenceError()/;
+            fail();
+        } or do {
+            is($output, undef);
+            like($@, qr/ReferenceError/);
+        }
+    };
 };
+
+# -----------------------------------------------------------------------------
 
 subtest 'console stdout' => sub {
     stdout_like sub { js_eval("console.log('YEAAAAAAA');") }, qr/YEAAAAAAA/;
@@ -83,17 +115,17 @@ subtest 'require' => sub {
         typeof require('./t/fixtures/preact').render;
     }, 'function';
 
-    like js_eval(q{
-        var missing = require('./pony');
-    }), qr/cannot find module/;
+    # thrown error
+    js_throws q%var missing = require('./pony');%, qr/cannot find module/;
 
-    like js_eval(q{
+    # also when last value is an error
+    js_throws q%
         try {
             var missing = require('./pony');
         } catch (e) {
             e;
         }
-    }), qr/cannot find module/;
+    %, qr/cannot find module/;
 };
 
 # max execution time
@@ -107,8 +139,16 @@ subtest 'timeout check' => sub {
         while(fn.pop()()) fn.push(F);
         'done';
     };
-    dies_ok sub { timeout 0.2, sub { isnt js_eval($spin), 'done'; } }, 'Timeout before duktape';
-    lives_ok sub { timeout 2.2, sub { isnt js_eval($spin), 'done'; } }, 'Duktape times out first';
+
+    dies_ok sub { timeout 0.2 => sub { js_eval_safe($spin); } }, 'Perl should time out first';
+    like $@, qr/timeout triggered/;
+
+    lives_ok sub { timeout 2.2 => sub { js_eval_safe($spin); } }, 'Duktape should time out first';
+
+    # dies_ok sub {
+    #     timeout 0.2 => sub { js_eval($spin); }
+    # }, 'timed out';
+    # lives_ok sub { timeout 2.2, sub { isnt js_eval($spin), 'done'; } }, 'Duktape times out first';
 };
 
 # data argument (json encoded)
