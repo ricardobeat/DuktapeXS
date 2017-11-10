@@ -40,7 +40,6 @@ sub timeout {
 
 # -----------------------------------------------------------------------------
 
-# Some basic sanity tests
 subtest 'Maths' => sub {
     is_js q/7 * 7/, "49";
     is_js q/2 + 7/, "9";
@@ -103,7 +102,8 @@ subtest 'console stderr' => sub {
     stderr_like sub { js_eval("console.error('NOOOOOOOO');") }, qr/NOOOOOOOO/;
 };
 
-# require()
+# -----------------------------------------------------------------------------
+
 subtest 'require' => sub {
     is_js q{
         var test = require('./t/foo');
@@ -128,10 +128,14 @@ subtest 'require' => sub {
     %, qr/cannot find module/;
 };
 
-# max execution time
-subtest 'timeout check' => sub {
+# -----------------------------------------------------------------------------
+
+subtest 'timeout limit' => sub {
     plan skip_all => 1 if $ENV{FAST};
+    diag("\nThis tests use timers, please be patient (set FAST=1 to skip)");
+
     DuktapeXS::set_timeout(1);
+
     my $spin = q{
         // gives more opportunity for the scheduler check to run than while(true)
         function F (){ return true };
@@ -151,7 +155,8 @@ subtest 'timeout check' => sub {
     # lives_ok sub { timeout 2.2, sub { isnt js_eval($spin), 'done'; } }, 'Duktape times out first';
 };
 
-# data argument (json encoded)
+# -----------------------------------------------------------------------------
+
 subtest 'data payload' => sub {
     my $data = { foo => "bar" };
     is js_eval('DATA.foo', $data), "bar";
@@ -160,7 +165,6 @@ subtest 'data payload' => sub {
     is js_eval('DATA.thing.has.hashes[1]', $thing), '2';
 };
 
-# sub list argument
 subtest 'calling subs' => sub {
     is js_eval(q/x("abc")/, undef, { x => sub { shift; } }), 'abc', 'shift';
     is js_eval(q/x("abc")/, undef, { x => sub { 123; } }), '123', 'string coercion';
